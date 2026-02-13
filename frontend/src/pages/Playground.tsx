@@ -128,7 +128,11 @@ export function PlaygroundPage() {
             break;
           case 'step:complete':
             updateNodeStatus(parsed.data.nodeId, 'SUCCESS');
-            setLogs((prev) => [...prev, `[DONE] ${parsed.data.label} (${parsed.data.durationMs}ms)`]);
+            setLogs((prev) => [
+              ...prev,
+              `[DONE] ${parsed.data.label} (${parsed.data.durationMs}ms)`,
+              `  Output: ${JSON.stringify(parsed.data.outputs, null, 2)}`,
+            ]);
             break;
           case 'step:error':
             updateNodeStatus(parsed.data.nodeId, 'FAILED');
@@ -227,7 +231,7 @@ export function PlaygroundPage() {
               <CardTitle className="text-sm">Steps</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
-              <div className="max-h-48 overflow-y-auto">
+              <div className="max-h-64 overflow-y-auto">
                 <table className="w-full text-xs">
                   <thead>
                     <tr className="border-b">
@@ -260,6 +264,25 @@ export function PlaygroundPage() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Output Preview */}
+          {steps.some((s) => s.outputPreview && Object.keys(s.outputPreview).length > 0) && (
+            <Card className="m-2 mt-0 flex-shrink-0">
+              <CardHeader className="py-3">
+                <CardTitle className="text-sm">Output Preview</CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="max-h-48 overflow-y-auto">
+                  {steps.filter((s) => s.outputPreview && Object.keys(s.outputPreview).length > 0).map((step) => (
+                    <div key={step.id} className="border-b px-3 py-2">
+                      <div className="text-xs font-semibold mb-1">{step.agent?.name || step.nodeId}</div>
+                      <pre className="text-[10px] text-muted-foreground whitespace-pre-wrap break-all">{JSON.stringify(step.outputPreview, null, 2)}</pre>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Logs */}
           <div className="flex-1 flex flex-col m-2 mt-0">
