@@ -29,10 +29,13 @@ export function LoginPage() {
   };
 
   return (
-    <div className="flex h-screen items-center justify-center bg-muted/30">
-      <Card className="w-full max-w-md">
+    <div className="flex h-screen items-center justify-center bg-[#2e2e38]">
+      <Card className="w-full max-w-md border-0 shadow-2xl">
         <CardHeader className="text-center">
-          <CardTitle>AI Workflow Builder</CardTitle>
+          <div className="flex justify-center mb-4">
+            <img src="/ey.png" alt="EY" className="h-14 w-14 object-contain" />
+          </div>
+          <CardTitle className="text-xl">AI Workflow Builder</CardTitle>
           <CardDescription>Sign in to your account</CardDescription>
         </CardHeader>
         <CardContent>

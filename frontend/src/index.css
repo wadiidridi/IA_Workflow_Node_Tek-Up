@@ -2,27 +2,32 @@
 
 @theme {
   --color-background: #ffffff;
-  --color-foreground: #0a0a0a;
+  --color-foreground: #1a1a24;
   --color-card: #ffffff;
-  --color-card-foreground: #0a0a0a;
+  --color-card-foreground: #1a1a24;
   --color-popover: #ffffff;
-  --color-popover-foreground: #0a0a0a;
+  --color-popover-foreground: #1a1a24;
   --color-primary: #2e2e38;
-  --color-primary-foreground: #ffffff;
-  --color-secondary: #f5f5f5;
+  --color-primary-foreground: #FFE600;
+  --color-secondary: #f4f4f6;
   --color-secondary-foreground: #2e2e38;
-  --color-muted: #f5f5f5;
-  --color-muted-foreground: #737373;
+  --color-muted: #f4f4f6;
+  --color-muted-foreground: #6c6c78;
   --color-accent: #FFE600;
   --color-accent-foreground: #2e2e38;
-  --color-destructive: #ef4444;
-  --color-destructive-foreground: #fafafa;
-  --color-border: #e5e5e5;
-  --color-input: #e5e5e5;
+  --color-destructive: #c4122f;
+  --color-destructive-foreground: #ffffff;
+  --color-border: #dcdce0;
+  --color-input: #dcdce0;
   --color-ring: #FFE600;
   --color-ey-yellow: #FFE600;
   --color-ey-lime: #8BC53F;
   --color-ey-cyan: #00B3E3;
+  --color-ey-dark: #2e2e38;
+  --color-ey-gray: #747480;
+  --color-sidebar: #2e2e38;
+  --color-sidebar-foreground: #ffffff;
+  --color-sidebar-accent: #FFE600;
   --radius: 0.5rem;
 }
 
@@ -32,7 +37,7 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: 'EYInterstate', 'Inter', system-ui, -apple-system, sans-serif;
     margin: 0;
   }
 }

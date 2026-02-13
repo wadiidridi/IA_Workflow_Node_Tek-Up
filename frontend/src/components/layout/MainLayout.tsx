@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router';
 import { useAuthStore } from '@/stores/authStore';
-import { LayoutDashboard, Bot, GitBranch, LogOut, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { LayoutDashboard, Bot, GitBranch, LogOut, Menu, X } from 'lucide-react';
 
 const navItems = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -23,12 +22,27 @@ export function MainLayout() {
   return (
     <div className="flex h-screen">
       {/* Sidebar */}
-      <aside className={`${collapsed ? 'w-16' : 'w-64'} border-r bg-muted/30 flex flex-col transition-all duration-200`}>
-        <div className={`border-b flex items-center ${collapsed ? 'p-3 justify-center' : 'p-4 gap-3'}`}>
-          <img src="/ey.png" alt="EY" className="h-8 w-8 object-contain flex-shrink-0" />
-          {!collapsed && <h1 className="text-lg font-bold truncate">AI Workflow Builder</h1>}
+      <aside className={`${collapsed ? 'w-16' : 'w-64'} bg-[#2e2e38] text-white flex flex-col transition-all duration-200`}>
+        {/* Top: Logo + Toggle */}
+        <div className={`flex items-center ${collapsed ? 'justify-center p-3' : 'justify-between px-4 py-3'} border-b border-white/10`}>
+          <div className={`flex items-center ${collapsed ? '' : 'gap-3'}`}>
+            <img src="/ey.png" alt="EY" className="h-8 w-8 object-contain flex-shrink-0" />
+            {!collapsed && <span className="text-sm font-bold text-[#FFE600] truncate">AI Workflow Builder</span>}
+          </div>
+          {!collapsed && (
+            <button onClick={() => setCollapsed(true)} className="text-white/60 hover:text-white cursor-pointer" title="Collapse sidebar">
+              <X className="h-4 w-4" />
+            </button>
+          )}
+          {collapsed && (
+            <button onClick={() => setCollapsed(false)} className="text-white/60 hover:text-white cursor-pointer mt-2" title="Expand sidebar">
+              <Menu className="h-4 w-4" />
+            </button>
+          )}
         </div>
-        <nav className={`flex-1 ${collapsed ? 'p-2' : 'p-4'} space-y-1`}>
+
+        {/* Nav */}
+        <nav className={`flex-1 ${collapsed ? 'p-2' : 'p-3'} space-y-1`}>
           {navItems.map((item) => (
             <NavLink
               key={item.to}
@@ -36,8 +50,10 @@ export function MainLayout() {
               end={item.to === '/'}
               title={item.label}
               className={({ isActive }) =>
-                `flex items-center ${collapsed ? 'justify-center' : 'gap-3'} px-3 py-2 rounded-md text-sm transition-colors ${
-                  isActive ? 'bg-primary text-primary-foreground' : 'hover:bg-accent'
+                `flex items-center ${collapsed ? 'justify-center' : 'gap-3'} px-3 py-2.5 rounded-md text-sm transition-colors ${
+                  isActive
+                    ? 'bg-[#FFE600] text-[#2e2e38] font-semibold'
+                    : 'text-white/80 hover:bg-white/10 hover:text-white'
                 }`
               }
             >
@@ -46,37 +62,30 @@ export function MainLayout() {
             </NavLink>
           ))}
         </nav>
-        <div className={`border-t ${collapsed ? 'p-2' : 'p-4'}`}>
+
+        {/* Bottom: User + Logout */}
+        <div className={`border-t border-white/10 ${collapsed ? 'p-2' : 'p-4'}`}>
           {!collapsed && (
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between">
               <div className="text-sm">
-                <div className="font-medium truncate">{user?.email}</div>
-                <div className="text-muted-foreground text-xs">{user?.role}</div>
+                <div className="font-medium text-white/90 truncate">{user?.email}</div>
+                <div className="text-white/50 text-xs">{user?.role}</div>
               </div>
-              <Button variant="ghost" size="icon" onClick={handleLogout}>
+              <button onClick={handleLogout} className="text-white/50 hover:text-white cursor-pointer" title="Logout">
                 <LogOut className="h-4 w-4" />
-              </Button>
+              </button>
             </div>
           )}
           {collapsed && (
-            <Button variant="ghost" size="icon" onClick={handleLogout} className="w-full mb-2" title="Logout">
+            <button onClick={handleLogout} className="w-full flex justify-center text-white/50 hover:text-white py-2 cursor-pointer" title="Logout">
               <LogOut className="h-4 w-4" />
-            </Button>
+            </button>
           )}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setCollapsed((c) => !c)}
-            className={collapsed ? 'w-full' : ''}
-            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          >
-            {collapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
-          </Button>
         </div>
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 overflow-auto">
+      <main className="flex-1 overflow-auto bg-[#f6f6fa]">
         <Outlet />
       </main>
     </div>
