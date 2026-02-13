@@ -1,0 +1,123 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum WorkflowStatus {
+  DRAFT
+  RUNNING
+  SUCCESS
+  FAILED
+}
+
+enum RunStatus {
+  PENDING
+  RUNNING
+  SUCCESS
+  FAILED
+}
+
+enum StepStatus {
+  PENDING
+  RUNNING
+  SUCCESS
+  FAILED
+  SKIPPED
+}
+
+enum ErrorPolicy {
+  STOP
+  CONTINUE
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  workflows Workflow[]
+  runs      Run[]
+}
+
+model Agent {
+  id          String   @id @default(uuid())
+  name        String
+  family      String
+  version     String   @default("1.0.0")
+  schemaIn    Json
+  schemaOut   Json
+  endpointUrl String
+  secrets     Json     @default("{}")
+  tags        String[] @default([])
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  runSteps RunStep[]
+}
+
+model Workflow {
+  id        String         @id @default(uuid())
+  name      String
+  nodes     Json           @default("[]")
+  edges     Json           @default("[]")
+  variables Json           @default("{}")
+  version   Int            @default(1)
+  status    WorkflowStatus @default(DRAFT)
+  createdBy String
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  user User @relation(fields: [createdBy], references: [id])
+  runs Run[]
+}
+
+model Run {
+  id          String    @id @default(uuid())
+  workflowId  String
+  status      RunStatus @default(PENDING)
+  prompt      String    @default("")
+  startedAt   DateTime  @default(now())
+  endedAt     DateTime?
+  durationMs  Int?
+  metrics     Json      @default("{}")
+  error       String?
+  triggeredBy String
+
+  workflow Workflow  @relation(fields: [workflowId], references: [id])
+  user     User      @relation(fields: [triggeredBy], references: [id])
+  steps    RunStep[]
+}
+
+model RunStep {
+  id            String     @id @default(uuid())
+  runId         String
+  nodeId        String
+  agentId       String
+  status        StepStatus @default(PENDING)
+  startedAt     DateTime?
+  endedAt       DateTime?
+  durationMs    Int?
+  logs          Json       @default("[]")
+  inputPreview  Json       @default("{}")
+  outputPreview Json       @default("{}")
+  errorPolicy   ErrorPolicy @default(STOP)
+  maxRetries    Int        @default(0)
+  backoffMs     Int        @default(1000)
+  retryCount    Int        @default(0)
+
+  run   Run   @relation(fields: [runId], references: [id], onDelete: Cascade)
+  agent Agent @relation(fields: [agentId], references: [id])
+}
