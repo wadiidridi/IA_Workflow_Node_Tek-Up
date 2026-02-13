@@ -32,7 +32,7 @@ docker-compose up --build
 
 | Service   | URL                         |
 | --------- | --------------------------- |
-| Frontend  | http://localhost              |
+| Frontend  | http://localhost:3000          |
 | Backend   | http://localhost:3001/api     |
 | MailHog   | http://localhost:8025         |
 

@@ -7,6 +7,7 @@ import {
   Controls,
   Background,
   type Node,
+  type Edge,
   Handle,
   Position,
   type NodeProps,
@@ -58,8 +59,8 @@ export function PlaygroundPage() {
   const [steps, setSteps] = useState<RunStep[]>([]);
   const [logs, setLogs] = useState<string[]>([]);
   const [running, setRunning] = useState(false);
-  const [nodes, setNodes, onNodesChange] = useNodesState([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [nodes, setNodes, onNodesChange] = useNodesState([] as Node[]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState([] as Edge[]);
   const logsEndRef = useRef<HTMLDivElement>(null);
   const eventSourceRef = useRef<EventSource | null>(null);
 

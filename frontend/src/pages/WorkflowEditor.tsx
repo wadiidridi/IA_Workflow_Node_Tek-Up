@@ -23,7 +23,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Select } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Bot, Save, CheckCircle, Play, X } from 'lucide-react';
 
 // -- Custom Node Component --
@@ -85,8 +84,8 @@ export function WorkflowEditorPage() {
   const [workflowName, setWorkflowName] = useState('New Workflow');
   const [workflowVersion, setWorkflowVersion] = useState(1);
   const [agents, setAgents] = useState<Agent[]>([]);
-  const [nodes, setNodes, onNodesChange] = useNodesState([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [nodes, setNodes, onNodesChange] = useNodesState([] as Node[]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState([] as Edge[]);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [agentSearch, setAgentSearch] = useState('');
   const [saving, setSaving] = useState(false);
