@@ -12,6 +12,14 @@ const WORKFLOW_LINEAR_ID = '00000000-0000-4000-b000-000000000001';
 const WORKFLOW_PARALLEL_ID = '00000000-0000-4000-b000-000000000002';
 
 async function main() {
+  // Clean DB in correct order (respect foreign keys)
+  await prisma.runStep.deleteMany();
+  await prisma.run.deleteMany();
+  await prisma.workflow.deleteMany();
+  await prisma.agent.deleteMany();
+  await prisma.user.deleteMany();
+  console.log('Database cleared');
+
   // Seed users
   const adminPassword = await bcrypt.hash('admin123', 10);
   const userPassword = await bcrypt.hash('user123', 10);

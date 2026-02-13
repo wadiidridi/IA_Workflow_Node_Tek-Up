@@ -1,8 +1,11 @@
-import { Router } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { authMiddleware } from '../middleware/auth';
 import { createRun, getRun, listRuns, streamRun } from '../controllers/runs';
 
 const router = Router();
+
+const asyncHandler = (fn: (req: Request, res: Response, next: NextFunction) => Promise<unknown>) =>
+  (req: Request, res: Response, next: NextFunction) => Promise.resolve(fn(req, res, next)).catch(next);
 
 router.use(authMiddleware);
 
@@ -30,7 +33,7 @@ router.use(authMiddleware);
  *       404:
  *         description: Workflow not found
  */
-router.post('/', createRun);
+router.post('/', asyncHandler(createRun));
 
 /**
  * @openapi
@@ -75,7 +78,7 @@ router.post('/', createRun);
  *                       items:
  *                         $ref: '#/components/schemas/Run'
  */
-router.get('/', listRuns);
+router.get('/', asyncHandler(listRuns));
 
 /**
  * @openapi
@@ -100,7 +103,7 @@ router.get('/', listRuns);
  *       404:
  *         description: Run not found
  */
-router.get('/:id', getRun);
+router.get('/:id', asyncHandler(getRun));
 
 /**
  * @openapi
@@ -132,6 +135,6 @@ router.get('/:id', getRun);
  *       404:
  *         description: Run not found
  */
-router.get('/:id/stream', streamRun);
+router.get('/:id/stream', asyncHandler(streamRun));
 
 export default router;

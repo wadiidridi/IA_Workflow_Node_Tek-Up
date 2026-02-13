@@ -96,7 +96,7 @@ model Run {
   error       String?
   triggeredBy String
 
-  workflow Workflow  @relation(fields: [workflowId], references: [id])
+  workflow Workflow  @relation(fields: [workflowId], references: [id], onDelete: Cascade)
   user     User      @relation(fields: [triggeredBy], references: [id])
   steps    RunStep[]
 }

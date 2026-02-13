@@ -178,8 +178,19 @@ export async function updateWorkflow(req: Request, res: Response) {
 }
 
 export async function deleteWorkflow(req: Request, res: Response) {
-  await prisma.workflow.delete({ where: { id: String(req.params.id) } });
-  req.log.info('Workflow deleted', { workflowId: req.params.id });
+  const workflowId = String(req.params.id);
+
+  const existing = await prisma.workflow.findUnique({ where: { id: workflowId } });
+  if (!existing) {
+    res.status(404).json({ error: 'Workflow not found' });
+    return;
+  }
+
+  // Delete runs and their steps first (RunStep cascades from Run already)
+  await prisma.run.deleteMany({ where: { workflowId } });
+  await prisma.workflow.delete({ where: { id: workflowId } });
+
+  req.log.info('Workflow deleted', { workflowId });
   res.json({ message: 'Workflow deleted' });
 }
 

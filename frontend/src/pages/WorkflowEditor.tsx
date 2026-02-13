@@ -28,8 +28,10 @@ import { Bot, Save, CheckCircle, Play, X } from 'lucide-react';
 // -- Custom Node Component --
 function AgentNode({ data }: NodeProps) {
   const d = data as { label: string; agent: Agent; config: WorkflowNode };
+  const mappingInKeys = d.config?.mappingIn ? Object.entries(d.config.mappingIn) : [];
+  const mappingOutKeys = d.config?.mappingOut ? Object.entries(d.config.mappingOut) : [];
   return (
-    <div className="bg-white border-2 border-gray-200 rounded-lg shadow-sm min-w-[180px]">
+    <div className="bg-white border-2 border-gray-200 rounded-lg shadow-sm min-w-[200px] max-w-[260px]">
       <Handle type="target" position={Position.Left} className="!w-3 !h-3 !bg-blue-500" />
       <div className="p-3">
         <div className="flex items-center gap-2 mb-1">
@@ -39,7 +41,27 @@ function AgentNode({ data }: NodeProps) {
         <Badge variant="outline" className="text-xs">
           {d.agent?.family}.{d.agent?.name}
         </Badge>
-        <div className="mt-2 text-xs text-muted-foreground">
+        {mappingInKeys.length > 0 && (
+          <div className="mt-2 border-t pt-1">
+            <div className="text-[10px] font-semibold text-blue-600 uppercase">Inputs</div>
+            {mappingInKeys.map(([k, v]) => (
+              <div key={k} className="text-[10px] text-muted-foreground truncate" title={`${k}: ${String(v)}`}>
+                <span className="font-medium">{k}:</span> {String(v)}
+              </div>
+            ))}
+          </div>
+        )}
+        {mappingOutKeys.length > 0 && (
+          <div className="mt-1 border-t pt-1">
+            <div className="text-[10px] font-semibold text-green-600 uppercase">Outputs</div>
+            {mappingOutKeys.map(([k, v]) => (
+              <div key={k} className="text-[10px] text-muted-foreground truncate" title={`${k}: ${String(v)}`}>
+                <span className="font-medium">{k}:</span> {String(v)}
+              </div>
+            ))}
+          </div>
+        )}
+        <div className="mt-1 text-xs text-muted-foreground">
           {d.config?.errorPolicy === 'CONTINUE' ? 'On error: continue' : 'On error: stop'}
         </div>
       </div>
@@ -163,14 +185,37 @@ export function WorkflowEditorPage() {
 
   const addAgentNode = (agent: Agent) => {
     const nodeId = `node-${Date.now()}`;
+
+    // Auto-populate mappingIn from agent's schemaIn
+    const mappingIn: Record<string, unknown> = {};
+    const schemaIn = agent.schemaIn as { properties?: Record<string, { type?: string }>; required?: string[] };
+    if (schemaIn?.properties) {
+      for (const [key, prop] of Object.entries(schemaIn.properties)) {
+        if (prop.type === 'string') {
+          mappingIn[key] = '{{prompt}}';
+        } else if (prop.type === 'number') {
+          mappingIn[key] = 0;
+        }
+      }
+    }
+
+    // Auto-populate mappingOut from agent's schemaOut
+    const mappingOut: Record<string, unknown> = {};
+    const schemaOut = agent.schemaOut as { properties?: Record<string, { type?: string }> };
+    if (schemaOut?.properties) {
+      for (const key of Object.keys(schemaOut.properties)) {
+        mappingOut[key] = `{{${nodeId}.${key}}}`;
+      }
+    }
+
     const config: WorkflowNode = {
       id: nodeId,
       agentId: agent.id,
       label: `${agent.family}.${agent.name}`,
       position: { x: 300 + Math.random() * 200, y: 200 + Math.random() * 200 },
       config: {},
-      mappingIn: {},
-      mappingOut: {},
+      mappingIn,
+      mappingOut,
       errorPolicy: 'STOP',
       maxRetries: 0,
       backoffMs: 1000,

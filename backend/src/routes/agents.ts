@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { authMiddleware, requireRole } from '../middleware/auth';
 import {
   listAgents,
@@ -9,6 +9,9 @@ import {
 } from '../controllers/agents';
 
 const router = Router();
+
+const asyncHandler = (fn: (req: Request, res: Response, next: NextFunction) => Promise<unknown>) =>
+  (req: Request, res: Response, next: NextFunction) => Promise.resolve(fn(req, res, next)).catch(next);
 
 router.use(authMiddleware);
 
@@ -71,7 +74,7 @@ router.use(authMiddleware);
  *                       items:
  *                         $ref: '#/components/schemas/Agent'
  */
-router.get('/', listAgents);
+router.get('/', asyncHandler(listAgents));
 
 /**
  * @openapi
@@ -96,7 +99,7 @@ router.get('/', listAgents);
  *       404:
  *         description: Agent not found
  */
-router.get('/:id', getAgent);
+router.get('/:id', asyncHandler(getAgent));
 
 /**
  * @openapi
@@ -122,7 +125,7 @@ router.get('/:id', getAgent);
  *       403:
  *         description: Admin role required
  */
-router.post('/', requireRole('ADMIN'), createAgent);
+router.post('/', requireRole('ADMIN'), asyncHandler(createAgent));
 
 /**
  * @openapi
@@ -155,7 +158,7 @@ router.post('/', requireRole('ADMIN'), createAgent);
  *       404:
  *         description: Agent not found
  */
-router.put('/:id', requireRole('ADMIN'), updateAgent);
+router.put('/:id', requireRole('ADMIN'), asyncHandler(updateAgent));
 
 /**
  * @openapi
@@ -178,6 +181,6 @@ router.put('/:id', requireRole('ADMIN'), updateAgent);
  *       404:
  *         description: Agent not found
  */
-router.delete('/:id', requireRole('ADMIN'), deleteAgent);
+router.delete('/:id', requireRole('ADMIN'), asyncHandler(deleteAgent));
 
 export default router;

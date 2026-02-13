@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { authMiddleware } from '../middleware/auth';
 import {
   listWorkflows,
@@ -10,6 +10,10 @@ import {
 } from '../controllers/workflows';
 
 const router = Router();
+
+// Wrapper to forward async errors to Express error handler
+const asyncHandler = (fn: (req: Request, res: Response, next: NextFunction) => Promise<unknown>) =>
+  (req: Request, res: Response, next: NextFunction) => Promise.resolve(fn(req, res, next)).catch(next);
 
 router.use(authMiddleware);
 
@@ -54,7 +58,7 @@ router.use(authMiddleware);
  *                       items:
  *                         $ref: '#/components/schemas/Workflow'
  */
-router.get('/', listWorkflows);
+router.get('/', asyncHandler(listWorkflows));
 
 /**
  * @openapi
@@ -79,7 +83,7 @@ router.get('/', listWorkflows);
  *       404:
  *         description: Workflow not found
  */
-router.get('/:id', getWorkflow);
+router.get('/:id', asyncHandler(getWorkflow));
 
 /**
  * @openapi
@@ -103,7 +107,7 @@ router.get('/:id', getWorkflow);
  *       400:
  *         description: Validation error (e.g., cycle detected)
  */
-router.post('/', createWorkflow);
+router.post('/', asyncHandler(createWorkflow));
 
 /**
  * @openapi
@@ -136,7 +140,7 @@ router.post('/', createWorkflow);
  *       404:
  *         description: Workflow not found
  */
-router.put('/:id', updateWorkflow);
+router.put('/:id', asyncHandler(updateWorkflow));
 
 /**
  * @openapi
@@ -157,7 +161,7 @@ router.put('/:id', updateWorkflow);
  *       404:
  *         description: Workflow not found
  */
-router.delete('/:id', deleteWorkflow);
+router.delete('/:id', asyncHandler(deleteWorkflow));
 
 /**
  * @openapi
@@ -182,6 +186,6 @@ router.delete('/:id', deleteWorkflow);
  *       404:
  *         description: Workflow not found
  */
-router.post('/:id/validate', validateWorkflow);
+router.post('/:id/validate', asyncHandler(validateWorkflow));
 
 export default router;
