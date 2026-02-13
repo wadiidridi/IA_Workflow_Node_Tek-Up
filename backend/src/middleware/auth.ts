@@ -17,13 +17,20 @@ declare global {
 }
 
 export function authMiddleware(req: Request, res: Response, next: NextFunction) {
+  let token: string | undefined;
+
   const authHeader = req.headers.authorization;
-  if (!authHeader?.startsWith('Bearer ')) {
-    res.status(401).json({ error: 'Missing or invalid authorization header' });
+  if (authHeader?.startsWith('Bearer ')) {
+    token = authHeader.substring(7);
+  } else if (typeof req.query.token === 'string') {
+    token = req.query.token;
+  }
+
+  if (!token) {
+    res.status(401).json({ error: 'Missing or invalid authorization' });
     return;
   }
 
-  const token = authHeader.substring(7);
   try {
     const payload = jwt.verify(token, config.jwtSecret) as JwtPayload;
     req.user = payload;
