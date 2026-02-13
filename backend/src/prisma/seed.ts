@@ -1,7 +1,15 @@
 import { PrismaClient, Role } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import { v4 as uuidv4 } from 'uuid';
 
 const prisma = new PrismaClient();
+
+// Fixed UUIDs for reproducible seeds
+const AGENT_SUMMARIZE_ID = '00000000-0000-4000-a000-000000000001';
+const AGENT_SENTIMENT_ID = '00000000-0000-4000-a000-000000000002';
+const AGENT_TRANSLATE_ID = '00000000-0000-4000-a000-000000000003';
+const WORKFLOW_LINEAR_ID = '00000000-0000-4000-b000-000000000001';
+const WORKFLOW_PARALLEL_ID = '00000000-0000-4000-b000-000000000002';
 
 async function main() {
   // Seed users
@@ -30,10 +38,10 @@ async function main() {
 
   // Seed agents
   const summarize = await prisma.agent.upsert({
-    where: { id: 'agent-nlp-summarize' },
+    where: { id: AGENT_SUMMARIZE_ID },
     update: {},
     create: {
-      id: 'agent-nlp-summarize',
+      id: AGENT_SUMMARIZE_ID,
       name: 'summarize',
       family: 'nlp',
       version: '1.0.0',
@@ -59,10 +67,10 @@ async function main() {
   });
 
   const sentiment = await prisma.agent.upsert({
-    where: { id: 'agent-nlp-sentiment' },
+    where: { id: AGENT_SENTIMENT_ID },
     update: {},
     create: {
-      id: 'agent-nlp-sentiment',
+      id: AGENT_SENTIMENT_ID,
       name: 'sentiment',
       family: 'nlp',
       version: '1.0.0',
@@ -88,10 +96,10 @@ async function main() {
   });
 
   const translate = await prisma.agent.upsert({
-    where: { id: 'agent-utils-translate' },
+    where: { id: AGENT_TRANSLATE_ID },
     update: {},
     create: {
-      id: 'agent-utils-translate',
+      id: AGENT_TRANSLATE_ID,
       name: 'translate',
       family: 'utils',
       version: '1.0.0',
@@ -117,10 +125,10 @@ async function main() {
 
   // Seed workflows
   await prisma.workflow.upsert({
-    where: { id: 'workflow-linear' },
+    where: { id: WORKFLOW_LINEAR_ID },
     update: {},
     create: {
-      id: 'workflow-linear',
+      id: WORKFLOW_LINEAR_ID,
       name: 'Translate then Summarize',
       createdBy: admin.id,
       status: 'DRAFT',
@@ -164,10 +172,10 @@ async function main() {
   });
 
   await prisma.workflow.upsert({
-    where: { id: 'workflow-parallel' },
+    where: { id: WORKFLOW_PARALLEL_ID },
     update: {},
     create: {
-      id: 'workflow-parallel',
+      id: WORKFLOW_PARALLEL_ID,
       name: 'Translate then Analyze (Summary + Sentiment)',
       createdBy: admin.id,
       status: 'DRAFT',
