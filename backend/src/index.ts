@@ -2,7 +2,9 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import swaggerUi from 'swagger-ui-express';
 import { config } from './config';
+import { swaggerSpec } from './config/swagger';
 import { correlationMiddleware } from './middleware/correlation';
 import { errorHandler } from './middleware/errorHandler';
 import { logger } from './utils/logger';
@@ -31,6 +33,8 @@ app.use(express.json({ limit: '1mb' }));
 app.use(correlationMiddleware);
 
 // Routes
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, { explorer: true }));
+app.get('/api/docs.json', (_req, res) => { res.json(swaggerSpec); });
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/agents', agentRoutes);
 app.use('/api/workflows', workflowRoutes);

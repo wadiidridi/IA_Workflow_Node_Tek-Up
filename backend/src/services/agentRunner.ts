@@ -72,7 +72,7 @@ async function translateText(inputs: Record<string, unknown>): Promise<AgentResp
   const toLang = (inputs.toLang as string) || 'en';
 
   // Simple mock: prepend language tag
-  const translated = toLang === 'en' ? text : `[${toLang.toUpperCase()}] ${text}`;
+  const translated = toLang === 'en' ? text : `[${toLang.toUpperCase()}] ${text}` ;
 
   return {
     status: 'success',

@@ -8,6 +8,7 @@ A full-stack application for building and running AI agent workflows via a visua
 | --------- | -------------------------------------- |
 | Frontend  | React 19 · TypeScript · Vite · Tailwind CSS · shadcn/ui · React Flow · Zustand · Recharts |
 | Backend   | Node.js · Express · TypeScript · Prisma ORM · Zod · JWT |
+| API-test  | Swagger UI && openAPI                     |
 | Database  | PostgreSQL 16                          |
 | Real-time | Server-Sent Events (SSE)               |
 | Email     | Nodemailer → MailHog (dev)              |
@@ -34,6 +35,8 @@ docker-compose up --build
 | --------- | --------------------------- |
 | Frontend  | http://localhost:3000          |
 | Backend   | http://localhost:3001/api     |
+| Swagger UI	http://localhost:3001/api/docs  |
+| OpenAPI JSON	http://localhost:3001/api/docs.json |
 | MailHog   | http://localhost:8025         |
 
 ### Local Development (no Docker)
