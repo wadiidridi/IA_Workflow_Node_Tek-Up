@@ -94,31 +94,64 @@ export async function executeAgent(endpointUrl: string, request: AgentRequest): 
     return handler(request.inputs);
   }
 
-  // External agent: make HTTP call
+  // External agent: supports GET (URL with {{placeholders}}) and POST
+  const start = Date.now();
   try {
-    const response = await fetch(endpointUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(request),
-      signal: AbortSignal.timeout(30000),
-    });
+    let response: Response;
+
+    if (endpointUrl.includes('{{')) {
+      // GET mode: substitute {{key}} placeholders in URL with input values
+      let resolvedUrl = endpointUrl;
+      for (const [key, value] of Object.entries(request.inputs)) {
+        resolvedUrl = resolvedUrl.replace(
+          new RegExp(`\\{\\{${key}\\}\\}`, 'g'),
+          encodeURIComponent(String(value))
+        );
+      }
+      response = await fetch(resolvedUrl, {
+        method: 'GET',
+        signal: AbortSignal.timeout(30000),
+      });
+    } else {
+      // POST mode: send inputs as JSON body
+      response = await fetch(endpointUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(request),
+        signal: AbortSignal.timeout(30000),
+      });
+    }
 
     if (!response.ok) {
       return {
         status: 'error',
         outputs: {},
-        metrics: { durationMs: 0 },
+        metrics: { durationMs: Date.now() - start },
         logs: [`HTTP ${response.status}: ${response.statusText}`],
         error: `Agent returned status ${response.status}`,
       };
     }
 
-    return await response.json() as AgentResponse;
+    const data = await response.json() as Record<string, unknown>;
+
+    // If response already follows our format, use it directly
+    if (data.status && data.outputs) {
+      return data as unknown as AgentResponse;
+    }
+
+    // Otherwise, wrap the raw API response as outputs
+    return {
+      status: 'success',
+      outputs: data,
+      metrics: { durationMs: Date.now() - start },
+      logs: [`External API responded with ${Object.keys(data).length} fields`],
+    };
   } catch (err) {
+    console.error(`Error executing agent at ${endpointUrl}:`, err);
     return {
       status: 'error',
       outputs: {},
-      metrics: { durationMs: 0 },
+      metrics: { durationMs: Date.now() - start },
       logs: [`Error calling agent: ${(err as Error).message}`],
       error: (err as Error).message,
     };

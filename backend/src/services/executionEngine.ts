@@ -59,6 +59,17 @@ function topologicalSort(nodes: WorkflowNode[], edges: WorkflowEdge[]): string[]
   return levels;
 }
 
+function resolveNestedPath(obj: unknown, path: string): unknown {
+  // Supports paths like "results[0].latitude" or "current.temperature_2m"
+  const segments = path.replace(/\[(\d+)\]/g, '.$1').split('.');
+  let current: unknown = obj;
+  for (const seg of segments) {
+    if (current == null || typeof current !== 'object') return undefined;
+    current = (current as Record<string, unknown>)[seg];
+  }
+  return current;
+}
+
 function resolveMapping(
   mapping: Record<string, unknown>,
   prompt: string,
@@ -71,12 +82,17 @@ function resolveMapping(
       if (value === '{{prompt}}') {
         resolved[key] = prompt;
       } else {
-        // Match patterns like {{node-1.fieldName}}
+        // Match patterns like {{node-1.field}} or {{node-1.results[0].latitude}}
         const match = value.match(/^\{\{([^.]+)\.(.+)\}\}$/);
         if (match) {
-          const [, nodeId, field] = match;
+          const [, nodeId, path] = match;
           const outputs = nodeOutputs.get(nodeId);
-          resolved[key] = outputs?.[field] ?? value;
+          if (outputs) {
+            const val = resolveNestedPath(outputs, path);
+            resolved[key] = val !== undefined ? val : value;
+          } else {
+            resolved[key] = value;
+          }
         } else {
           resolved[key] = value;
         }

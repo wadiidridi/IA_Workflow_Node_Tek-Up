@@ -8,8 +8,11 @@ const prisma = new PrismaClient();
 const AGENT_SUMMARIZE_ID = '00000000-0000-4000-a000-000000000001';
 const AGENT_SENTIMENT_ID = '00000000-0000-4000-a000-000000000002';
 const AGENT_TRANSLATE_ID = '00000000-0000-4000-a000-000000000003';
+const AGENT_GEOCODE_ID = '00000000-0000-4000-a000-000000000004';
+const AGENT_FORECAST_ID = '00000000-0000-4000-a000-000000000005';
 const WORKFLOW_LINEAR_ID = '00000000-0000-4000-b000-000000000001';
 const WORKFLOW_PARALLEL_ID = '00000000-0000-4000-b000-000000000002';
+const WORKFLOW_WEATHER_ID = '00000000-0000-4000-b000-000000000003';
 
 async function main() {
   // Clean DB in correct order (respect foreign keys)
@@ -131,6 +134,63 @@ async function main() {
     },
   });
 
+  // External weather agents (real API calls, no API key needed)
+  const geocode = await prisma.agent.upsert({
+    where: { id: AGENT_GEOCODE_ID },
+    update: {},
+    create: {
+      id: AGENT_GEOCODE_ID,
+      name: 'geocode',
+      family: 'weather',
+      version: '1.0.0',
+      endpointUrl: 'https://geocoding-api.open-meteo.com/v1/search?name={{city}}&count=1&language=en',
+      schemaIn: {
+        type: 'object',
+        properties: {
+          city: { type: 'string', description: 'City name (e.g. Paris, London, New York)' },
+        },
+        required: ['city'],
+      },
+      schemaOut: {
+        type: 'object',
+        properties: {
+          results: { type: 'array', description: 'Array with latitude, longitude, name, country' },
+        },
+      },
+      tags: ['weather', 'geocoding', 'external'],
+      active: true,
+    },
+  });
+
+  const forecast = await prisma.agent.upsert({
+    where: { id: AGENT_FORECAST_ID },
+    update: {},
+    create: {
+      id: AGENT_FORECAST_ID,
+      name: 'forecast',
+      family: 'weather',
+      version: '1.0.0',
+      endpointUrl: 'https://api.open-meteo.com/v1/forecast?latitude={{latitude}}&longitude={{longitude}}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code',
+      schemaIn: {
+        type: 'object',
+        properties: {
+          latitude: { type: 'string', description: 'Latitude coordinate' },
+          longitude: { type: 'string', description: 'Longitude coordinate' },
+        },
+        required: ['latitude', 'longitude'],
+      },
+      schemaOut: {
+        type: 'object',
+        properties: {
+          current: { type: 'object', description: 'Current weather data with temperature_2m, humidity, wind_speed, weather_code' },
+          current_units: { type: 'object', description: 'Units for current weather fields' },
+        },
+      },
+      tags: ['weather', 'forecast', 'external'],
+      active: true,
+    },
+  });
+
   // Seed workflows
   await prisma.workflow.upsert({
     where: { id: WORKFLOW_LINEAR_ID },
@@ -245,9 +305,57 @@ async function main() {
     },
   });
 
+  // Weather workflow: Geocode city → Get forecast
+  await prisma.workflow.upsert({
+    where: { id: WORKFLOW_WEATHER_ID },
+    update: {},
+    create: {
+      id: WORKFLOW_WEATHER_ID,
+      name: 'Get Weather by City (External API)',
+      createdBy: admin.id,
+      status: 'DRAFT',
+      nodes: [
+        {
+          id: 'node-1',
+          agentId: geocode.id,
+          label: 'Geocode City',
+          position: { x: 100, y: 250 },
+          config: {},
+          mappingIn: { city: '{{prompt}}' },
+          mappingOut: {},
+          errorPolicy: 'STOP',
+          maxRetries: 1,
+          backoffMs: 1000,
+        },
+        {
+          id: 'node-2',
+          agentId: forecast.id,
+          label: 'Get Forecast',
+          position: { x: 500, y: 250 },
+          config: {},
+          mappingIn: { latitude: '{{node-1.results[0].latitude}}', longitude: '{{node-1.results[0].longitude}}' },
+          mappingOut: {},
+          errorPolicy: 'STOP',
+          maxRetries: 1,
+          backoffMs: 1000,
+        },
+      ],
+      edges: [
+        {
+          id: 'edge-1',
+          source: 'node-1',
+          target: 'node-2',
+          sourceHandle: 'output',
+          targetHandle: 'input',
+        },
+      ],
+      variables: {},
+    },
+  });
+
   console.log('Seed data created successfully');
   console.log('Users:', { admin: admin.email, user: user.email });
-  console.log('Agents:', [summarize.name, sentiment.name, translate.name]);
+  console.log('Agents:', [summarize.name, sentiment.name, translate.name, geocode.name, forecast.name]);
 }
 
 main()
