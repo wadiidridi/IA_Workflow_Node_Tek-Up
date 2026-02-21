@@ -36,7 +36,7 @@ docker-compose up --build
 | Frontend  | http://localhost:3000          |
 | Backend   | http://localhost:3001/api     |
 | Swagger UI	http://localhost:3001/api/docs  |
-| OpenAPI JSON	http://localhost:3001/api/docs.json |
+| OpenAPI JSON	http:/localhost:3001/api/docs.json |
 | MailHog   | http://localhost:8025         |
 
 ### Local Development (no Docker)
